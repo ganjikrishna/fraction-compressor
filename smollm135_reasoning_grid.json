@@ -1,0 +1,86 @@
+{
+  "grid": [
+    {
+      "level": "trivial",
+      "prompt": "hi",
+      "base_top1": 0.128,
+      "base_entropy": 5.905,
+      "instruct_top1": 0.4027,
+      "instruct_entropy": 2.5
+    },
+    {
+      "level": "trivial",
+      "prompt": "how are you",
+      "base_top1": 0.1194,
+      "base_entropy": 6.299,
+      "instruct_top1": 0.8147,
+      "instruct_entropy": 1.026
+    },
+    {
+      "level": "trivial",
+      "prompt": "good morning",
+      "base_top1": 0.0954,
+      "base_entropy": 5.867,
+      "instruct_top1": 0.3513,
+      "instruct_entropy": 2.399
+    },
+    {
+      "level": "easy",
+      "prompt": "What is the capital of France?",
+      "base_top1": 0.2835,
+      "base_entropy": 4.579,
+      "instruct_top1": 0.459,
+      "instruct_entropy": 2.646
+    },
+    {
+      "level": "easy",
+      "prompt": "Name a prime number.",
+      "base_top1": 0.3137,
+      "base_entropy": 4.685,
+      "instruct_top1": 0.1994,
+      "instruct_entropy": 2.968
+    },
+    {
+      "level": "hard",
+      "prompt": "If a train travels 60 miles per hour for 2.5 hours, how far does it go? Explain step by step.",
+      "base_top1": 0.1053,
+      "base_entropy": 4.975,
+      "instruct_top1": 0.29,
+      "instruct_entropy": 2.684
+    },
+    {
+      "level": "hard",
+      "prompt": "Write a Python function that reverses a string, with a docstring.",
+      "base_top1": 0.5903,
+      "base_entropy": 2.869,
+      "instruct_top1": 0.3425,
+      "instruct_entropy": 1.683
+    }
+  ],
+  "generations": [
+    {
+      "level": "trivial",
+      "prompt": "hi",
+      "n_tokens": 31,
+      "response": "system\nYou are a helpful assistant.\nuser\nhi\nassistant\nHello! How can I help you today?"
+    },
+    {
+      "level": "trivial",
+      "prompt": "how are you",
+      "n_tokens": 49,
+      "response": "system\nYou are a helpful assistant.\nuser\nhow are you\nassistant\nI'm a software engineer, I'm also a bit of a gamer. I love playing video games and watching movies."
+    },
+    {
+      "level": "easy",
+      "prompt": "What is the capital of France?",
+      "n_tokens": 63,
+      "response": "system\nYou are a helpful assistant.\nuser\nWhat is the capital of France?\nassistant\nThe capital of France is Paris, which is the largest city in France and the second-largest city in the world. It is located in the north-central region of France and"
+    },
+    {
+      "level": "hard",
+      "prompt": "If a train travels 60 miles per hour for 2.5 hours, how far does it go? Explain step by step.",
+      "n_tokens": 84,
+      "response": "system\nYou are a helpful assistant.\nuser\nIf a train travels 60 miles per hour for 2.5 hours, how far does it go? Explain step by step.\nassistant\nTo calculate the distance traveled by a train, we need to know the time it takes to cover the distance. Let's assume the train travels 60 miles per hour fo"
+    }
+  ]
+}

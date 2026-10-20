@@ -47,13 +47,13 @@ MODELS = {
         kind="sign",
     ),
     "smollm2-360m": dict(
-        layers=16, hidden=960, heads=15, kv_heads=5, inter=2560,
+        layers=32, hidden=960, heads=15, kv_heads=5, inter=2560,
         vocab=49152, eps=1e-5, theta=100000.0, qk_norm=False,
         out="smollm2_360_signet_results.json", grid_out="smollm2_360_reasoning_grid.json",
         kind="sign",
     ),
     "qwen3-0.6b": dict(
-        layers=28, hidden=1024, heads=16, kv_heads=8, inter=3072,
+        layers=28, hidden=1024, heads=16, kv_heads=8, head_dim=128, inter=3072,
         vocab=151936, eps=1e-6, theta=1000000.0, qk_norm=True,
         out="qwen3_thinking_results.json",
         kind="thinking",
@@ -143,7 +143,7 @@ class Model:
         self.hidden = cfg["hidden"]
         self.heads = cfg["heads"]
         self.kv_heads = cfg["kv_heads"]
-        self.head_dim = cfg["hidden"] // cfg["heads"]
+        self.head_dim = cfg.get("head_dim", cfg["hidden"] // cfg["heads"])
         self.inter = cfg["inter"]
         self.eps = cfg["eps"]
         self.theta = cfg["theta"]
@@ -189,7 +189,7 @@ class Model:
             mask = np.triu(np.ones((T, T), dtype=bool), 1)
             att[:, mask] = -1e9
             att = softmax(att)
-            o = np.einsum("hts,shd->thd", att, v).reshape(T, self.hidden)
+            o = np.einsum("hts,shd->thd", att, v).reshape(T, self.heads * self.head_dim)
             x = x + linear(o, sd, f"{p}.self_attn.o_proj.weight")
             h2 = rmsnorm(x, sd[f"{p}.post_attention_layernorm.weight"], self.eps)
             gate = silu(linear(h2, sd, f"{p}.mlp.gate_proj.weight"))

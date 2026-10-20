@@ -30,53 +30,28 @@ resolve() { # $1 = description, $2.. = candidate globs (first existing wins)
 
 # Env overrides (full paths) if auto-resolution guesses wrong:
 #   S135_BASE S135_INST S135_TOK  S2360_BASE S2360_INST S2360_TOK  Q3_BASE Q3_INST Q3_TOK
-#
-# BASE resolution must skip instruct files. Glob expansion is alphabetical and
-# the instruct filename (smollm-135m-instruct...) sorts before the base file
-# (smollm1-135m...), so the plain glob below once picked the instruct weights
-# as BOTH base and instruct (delta=0.0, Part A void on 2026-10-14).
-resolve_base() { # $1 = env-var name, $2.. = candidate globs (first non-instruct file wins)
-  local name="$1"; shift
-  if [ -n "${!name:-}" ]; then echo "${!name}"; return 0; fi
-  for g in "$@"; do
-    for f in $g; do
-      case "$f" in *nstruct*) continue ;; esac
-      if [ -f "$f" ]; then echo "$f"; return 0; fi
-    done
-  done
-  echo "FATAL: no file for $name (tried: $*)" >&2
-  return 1
-}
-S135_BASE=$(resolve_base S135_BASE "data/*smollm*135m*.safetensors" "data/*135m*.safetensors") || exit 1
-S135_INST=$(resolve S135_INST "data/*smollm*135m*instruct*.safetensors" "data/*135m*instruct*.safetensors") || exit 1
-S2360_BASE=$(resolve_base S2360_BASE "data/*smollm2*360m*.safetensors" "data/*360m*.safetensors") || exit 1
-S2360_INST=$(resolve S2360_INST "data/*smollm2*360m*instruct*.safetensors" "data/*360m*instruct*.safetensors") || exit 1
-Q3_INST=$(resolve Q3_INST "data/*qwen3*0.6b*.safetensors") || exit 1
-# Qwen3 thinking test runs on the single instruct model (thinking ON vs OFF);
-# there is no separate base file in data/, so fall back to the same file.
-Q3_BASE=$(resolve Q3_BASE "data/*qwen3*0.6b*base*.safetensors" "data/*qwen3*base*.safetensors" 2>/dev/null) || true
-if [ -z "${Q3_BASE:-}" ]; then
-  echo "note: no separate qwen3 base file; using instruct file for both (delta stats will be trivial)" >&2
-  Q3_BASE="$Q3_INST"
-fi
-if [ "$Q3_INST" = "$Q3_BASE" ]; then
-  echo "note: qwen3 base==instruct (thinking ON/OFF test on one model)" >&2
-fi
-S135_TOK=$(resolve S135_TOK "data/*smollm*135m*/tokenizer.json" "data/*smollm*135m*tokenizer*.json" "data/*smollm1*tokenizer*.json" "data/*135m*/tokenizer.json" "data/*135m*tokenizer*.json") || exit 1
-S2360_TOK=$(resolve S2360_TOK "data/*smollm2*360m*/tokenizer.json" "data/*smollm2*360m*tokenizer*.json" "data/*360m*/tokenizer.json" "data/*360m*tokenizer*.json") || exit 1
-Q3_TOK=$(resolve Q3_TOK "data/*qwen3*/tokenizer.json" "data/*qwen3*tokenizer*.json") || exit 1
+# Exact filenames (2026-10-14 fix): the old glob resolver picked the instruct
+# file for --base and the tokenizer_config for --tok under en_US.UTF-8
+# collation, voiding two runs and crashing the third. No globs anymore.
+S135_BASE="data/smollm1-135m.safetensors"
+S135_INST="data/smollm1-135m-instruct.safetensors"
+S135_TOK="data/smollm1-tokenizer.json"
+S2360_BASE="data/smollm2-360m.safetensors"
+S2360_INST="data/smollm2-360m-instruct.safetensors"
+S2360_TOK="data/smollm2-360m-tokenizer.json"
+Q3_INST="data/qwen3-0.6b.safetensors"
+Q3_BASE="$Q3_INST"   # thinking test runs ON vs OFF on the one Qwen3 file
+Q3_TOK="data/qwen3-tokenizer.json"
+for f in "$S135_BASE" "$S135_INST" "$S135_TOK" "$S2360_BASE" "$S2360_INST" "$S2360_TOK" "$Q3_INST" "$Q3_TOK"; do
+  [ -f "$f" ] || { echo "FATAL: missing $f" >&2; exit 1; }
+done
+[ "$S135_BASE" != "$S135_INST" ] || { echo "FATAL: smollm135 base==instruct" >&2; exit 1; }
+[ "$S2360_BASE" != "$S2360_INST" ] || { echo "FATAL: smollm2360 base==instruct" >&2; exit 1; }
 
 echo "resolved:"
 echo "  smollm-135m : $S135_BASE | $S135_INST | $S135_TOK"
 echo "  smollm2-360m: $S2360_BASE | $S2360_INST | $S2360_TOK"
 echo "  qwen3-0.6b  : $Q3_BASE | $Q3_INST | $Q3_TOK"
-
-# Hard guard: for the two signet models base must differ from instruct.
-# (qwen3-0.6b is a thinking ON/OFF test on one model, so it is exempt.)
-if [ "$S135_BASE" = "$S135_INST" ] || [ "$S2360_BASE" = "$S2360_INST" ]; then
-  echo "FATAL: base==instruct for a signet model; Part A would be void. Aborting." >&2
-  exit 1
-fi
 
 LOG=battery_run.log
 run_one() { # $1 label, rest = command

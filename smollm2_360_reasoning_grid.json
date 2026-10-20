@@ -1,0 +1,86 @@
+{
+  "grid": [
+    {
+      "level": "trivial",
+      "prompt": "hi",
+      "base_top1": 0.2215,
+      "base_entropy": 6.049,
+      "instruct_top1": 0.9487,
+      "instruct_entropy": 0.312
+    },
+    {
+      "level": "trivial",
+      "prompt": "how are you",
+      "base_top1": 0.1758,
+      "base_entropy": 5.441,
+      "instruct_top1": 0.8824,
+      "instruct_entropy": 0.785
+    },
+    {
+      "level": "trivial",
+      "prompt": "good morning",
+      "base_top1": 0.1473,
+      "base_entropy": 5.772,
+      "instruct_top1": 0.896,
+      "instruct_entropy": 0.55
+    },
+    {
+      "level": "easy",
+      "prompt": "What is the capital of France?",
+      "base_top1": 0.3682,
+      "base_entropy": 3.964,
+      "instruct_top1": 0.9038,
+      "instruct_entropy": 0.47
+    },
+    {
+      "level": "easy",
+      "prompt": "Name a prime number.",
+      "base_top1": 0.1095,
+      "base_entropy": 5.395,
+      "instruct_top1": 0.4364,
+      "instruct_entropy": 1.9
+    },
+    {
+      "level": "hard",
+      "prompt": "If a train travels 60 miles per hour for 2.5 hours, how far does it go? Explain step by step.",
+      "base_top1": 0.1103,
+      "base_entropy": 5.067,
+      "instruct_top1": 0.4531,
+      "instruct_entropy": 1.688
+    },
+    {
+      "level": "hard",
+      "prompt": "Write a Python function that reverses a string, with a docstring.",
+      "base_top1": 0.3419,
+      "base_entropy": 3.944,
+      "instruct_top1": 0.596,
+      "instruct_entropy": 1.432
+    }
+  ],
+  "generations": [
+    {
+      "level": "trivial",
+      "prompt": "hi",
+      "n_tokens": 31,
+      "response": "system\nYou are a helpful assistant.\nuser\nhi\nassistant\nHello! How can I help you today?"
+    },
+    {
+      "level": "trivial",
+      "prompt": "how are you",
+      "n_tokens": 59,
+      "response": "system\nYou are a helpful assistant.\nuser\nhow are you\nassistant\nI'm doing well. I'm currently working on a project related to data analysis and interpretation. I'm learning about various statistical concepts and techniques, and I'm trying to understand how"
+    },
+    {
+      "level": "easy",
+      "prompt": "What is the capital of France?",
+      "n_tokens": 35,
+      "response": "system\nYou are a helpful assistant.\nuser\nWhat is the capital of France?\nassistant\nThe capital of France is Paris."
+    },
+    {
+      "level": "hard",
+      "prompt": "If a train travels 60 miles per hour for 2.5 hours, how far does it go? Explain step by step.",
+      "n_tokens": 84,
+      "response": "system\nYou are a helpful assistant.\nuser\nIf a train travels 60 miles per hour for 2.5 hours, how far does it go? Explain step by step.\nassistant\nTo find out how far the train goes, we need to know the speed of the train and the time it took to travel that distance.\n\nStep 1: Find the"
+    }
+  ]
+}

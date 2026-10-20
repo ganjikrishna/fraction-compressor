@@ -154,11 +154,25 @@ moved matters more than how far. The DARE-90 arm destroyed the transfer
 on this test. Limits: 24 items, logprob probes only, one small model.
 A signal worth a bigger test, not a benchmark.
 
-Note on the SmolLM arms: the first battery runs on SmolLM-135M and
-SmolLM2-360M were void, because a launcher bug selected the instruct
-file as its own base. The launcher is fixed. Corrected reruns on
-SmolLM-135M and SmolLM2-360M are pending, and their results will be
-added here.
+**Corrected SmolLM reruns:** the void SmolLM arms were rerun with the fixed
+launcher and architecture fixes (SmolLM2-360M now uses the correct 32
+layers and head_dim=128). Both reruns exited cleanly, and the answer
+previews were checked for coherence before trusting the numbers.
+
+| Model | Probe set | Base to instruct gap | Closed by sign alone | Closed by DARE-90 |
+|---|---|---|---|---|
+| SmolLM2-360M | Math | 3.751 nats | 16.5% | 51.0% |
+| SmolLM2-360M | Knowledge | 3.968 nats | 53.5% | 78.1% |
+| SmolLM2-360M | Instruction | 5.881 nats | 32.1% | 44.0% |
+| SmolLM-135M | Math | Negative (instruct scored below base) | n/a | n/a |
+| SmolLM-135M | Knowledge | 1.648 nats | Negative (sign arm worse than base) | Negative |
+| SmolLM-135M | Instruction | 2.078 nats | 63.5% | Negative |
+
+**Takeaway:** on SmolLM2-360M the pattern holds, and DARE-90 closed more
+gap than sign alone on this model. On SmolLM-135M the signal is weaker:
+the sign arm only helped on the instruction-following set, and DARE-90
+hurt on every set. Same limits apply: small probe sets, logprob probes
+only. Read these as directions, not scores.
 
 ## How this differs from general compression
 
@@ -182,9 +196,9 @@ will say so. That is the test.
       hot/cold placement at matched budget, measured disk wall (RESULTS3.md).
       Honest result: real usage signal, but the split loses to uniform on mean
       weight error; it buys 63x less resident memory, not fidelity
-- [ ] Signet at scale: rerun the fixed SmolLM arms, extend the sign test to
-      larger probe sets and a second model family (hackathon build focus,
-      Oct 26 to Nov 4, 2026)
+- [ ] Signet at scale: corrected SmolLM arms rerun and added above; extend
+      the sign test to larger probe sets and a second model family
+      (hackathon build focus, Oct 26 to Nov 4, 2026)
 - [ ] v0.4 End-to-end: export a compressed model that actually runs
       (llama.cpp / Ollama on a constrained box, e.g. 11 GB RAM, iGPU),
       report tokens/sec, RAM, perplexity, and task accuracy

@@ -1,0 +1,38 @@
+{
+  "part_a_summary": {
+    "math": {
+      "base": -8.734675083693585,
+      "instruct": -10.06555201310074,
+      "gap": -1.3308769294071556,
+      "base+full": -10.065552013096514,
+      "base+full_gap_closed": null,
+      "base+binary": -9.969057947959637,
+      "base+binary_gap_closed": null,
+      "base+dare90": -11.749909428720578,
+      "base+dare90_gap_closed": null
+    },
+    "knowledge": {
+      "base": -14.928139941837502,
+      "instruct": -13.280163762496294,
+      "gap": 1.6479761793412084,
+      "base+full": -13.280163762493274,
+      "base+full_gap_closed": 1.0000000000018325,
+      "base+binary": -15.143417975540066,
+      "base+binary_gap_closed": -0.13063176300802057,
+      "base+dare90": -17.534154322399964,
+      "base+dare90_gap_closed": -1.5813422628500835
+    },
+    "instruct": {
+      "base": -19.390734111429804,
+      "instruct": -17.313164316051616,
+      "gap": 2.0775697953781886,
+      "base+full": -17.313164316038872,
+      "base+full_gap_closed": 1.000000000006134,
+      "base+binary": -18.07073299243823,
+      "base+binary_gap_closed": 0.6353582545953832,
+      "base+dare90": -21.214744553944183,
+      "base+dare90_gap_closed": -0.8779538702247768
+    }
+  },
+  "delta_mean_abs": 0.011637170708046714
+}
