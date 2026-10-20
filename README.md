@@ -1,112 +1,146 @@
 # fraction-compressor
 
-**You use a fraction of your LLM. Keep that fraction. Compress the rest away.**
+**The problem:** Most LLM compression (GPTQ, AWQ, GGUF, Samsung's
+LittleBit) tries to keep everything the model knows, just in fewer bits.
+That is the hardest version of the problem. Quality drops fast below
+about 4 bits per weight, and sub-1-bit compression only survives with
+quantization-aware training.
 
-Most LLM compression (GPTQ, AWQ, GGUF, Samsung's LittleBit) tries to preserve
-*everything* the model knows, just in fewer bits. That is the hardest version
-of the problem, and it is why quality falls off a cliff below ~4 bits per
-weight for general benchmarks, and why sub-1-bit needs quantization-aware
-training to survive at all.
+**What this project does:** It tests the opposite idea. A personal,
+single-purpose model does not need its full general capacity. So this
+project profiles what you actually ask the model to do, spends the bit
+budget there, and lets the unused capacity go. All code is pure numpy,
+training-free, and runs on a small CPU machine with no GPU.
 
-This project tests the opposite bet:
+## Background
 
-> A personal / single-purpose model does not need its full general capacity.
-> Profile what you *actually* ask it to do, spend your bit budget there,
-> and let the unused capacity go.
+This started from an Instagram post about Samsung Research's LittleBit
+(NeurIPS 2025, arXiv:2506.13771). LittleBit uses low-rank latent
+factorization, binarized factors, and multi-scale compensation to reach
+0.1 bits per weight. Reported results: Llama2-13B from 26.06 GB (FP16)
+to 0.84 GB, Llama2-70B to 1.98 GB, up to 11.6x inference speedup
+potential. The paper is clear about the cost: extreme compression loses
+accuracy, and the published numbers use quantization-aware training.
 
-## What the Instagram post that started this actually claims
+We audited the SamsungLabs/LittleBit code directly (cloned Oct 11,
+2026). Its license is CC BY-NC 4.0 (noncommercial), so no LittleBit
+code is used here. The methods below are clean-room implementations
+written from the published papers. See NOTICE.md for full attribution.
 
-Samsung Research's LittleBit (NeurIPS 2025, arXiv:2506.13771):
-low-rank latent factorization + binarized factors + multi-scale
-compensation, down to 0.1 bits per weight. Reported: Llama2-13B
-26.06 GB (FP16) -> 0.84 GB, Llama2-70B -> 1.98 GB, up to 11.6x inference
-speedup potential. Code: SamsungLabs/LittleBit on GitHub.
-Caveat in the post itself, and in the paper: extreme compression costs
-accuracy, and the published numbers come *with* quantization-aware training.
+## How it works
 
-## What this repo does (v0.1, honest scope)
+- **v0.1 baselines:** int8 and int4 group quantization, low-rank SVD in
+  fp16, and a simple training-free binary path (SVD, binarize the
+  factors, store row / latent / column scales).
+- **v0.2 methods:** Dual-SVID rank-1 scales, a Joint-ITQ rotation, and
+  a residual path, all clean-room from the LittleBit and LittleBit-2
+  papers.
+- **v0.3 resident fraction:** a usage profiler (profile3.py) records
+  real activations while the model runs your prompts. The hottest
+  matrices stay resident at high precision. The cold rest is compressed
+  hard and streams from disk.
+- **Measurement:** relative reconstruction error and cosine similarity
+  on the largest real weight matrices of SmolLM2-135M, at matched
+  effective bits-per-weight. "Effective" counts every scale we store.
 
-1. **Baselines anyone can reproduce in minutes, pure numpy, no GPU:**
-   int8 and int4 group quantization, low-rank SVD in fp16, and a simplified
-   training-free LittleBit-style path (SVD -> binarize factors -> row /
-   latent / column scales).
-2. **Real measurement, not marketing:** relative reconstruction error and
-   cosine similarity on the largest real weight matrices of a real model
-   (SmolLM2-135M for v0.1), at matched effective bits-per-weight, where
-   "effective" counts every scale we store. See RESULTS.md.
-3. **The task-aware test (the actual thesis):** same bit budget, two ways
-   to spend it -- uniform rank everywhere vs rank weighted toward the
-   matrices / layers your usage profile exercises. v0.1 uses singular-value
-   energy concentration as a cheap stand-in for a usage profile.
-   v0.2 replaces it with a real profile: activations recorded while the
-   model runs *your* prompts.
+## Results v0.1
 
-## What v0.1 already shows
+16 largest SmolLM2-135M matrices (41.6M params). Lower error / higher
+cosine is better. Full detail in RESULTS.md.
 
-See RESULTS.md for the run on your machine. Expect the training-free binary
-path to look bad next to int4. That is a finding, not a failure: it sizes
-exactly how much of LittleBit's result is the factorization idea vs the
-QAT training on top of it, and it sets the bar the task-aware version has
-to clear at the same budget.
+| Method | Target BPW | Effective BPW | Rel. error | Cosine |
+|---|---|---|---|---|
+| FP16 (original) | 16 | 16.00 | 0.000 | 1.000 |
+| int8 | - | 8.12 | 0.006 | 1.000 |
+| int4 | - | 4.12 | 0.106 | 0.994 |
+| svd_fp16 | 0.8 | 0.77 | 0.919 | 0.374 |
+| svd_binary | 0.8 | 0.80 | 0.826 | 0.562 |
+| svd_fp16 | 0.55 | 0.53 | 0.934 | 0.332 |
+| svd_binary | 0.55 | 0.55 | 0.862 | 0.506 |
+| svd_fp16 | 0.3 | 0.27 | 0.953 | 0.266 |
+| svd_binary | 0.3 | 0.30 | 0.910 | 0.413 |
 
-## What v0.2 tested (upstream audit + RESULTS2.md)
+Task-aware proxy at 0.55 BPW (binary path): uniform rank rel. error
+0.862 vs energy-weighted rank 0.856. A directional signal, not a
+same-budget proof.
 
-We audited SamsungLabs/LittleBit directly (cloned Oct 11, 2026):
-its license is CC BY-NC 4.0 (noncommercial), so none of its code is used
-here; the two methods below are clean-room numpy implementations written
-from the published algorithm descriptions. Its training path also needs
-PyTorch CUDA + DeepSpeed QAT, which rules out low-end local boxes, and it
-ships no official prebuilt checkpoints.
+**Takeaway:** the training-free binary path looks bad next to int4.
+That is a finding, not a failure. It shows how much of LittleBit's
+result is the factorization idea, and how much is the training on top
+of it.
 
-Training-free, same matrices and budgets as v0.1:
+## Results v0.2
 
-| Addition | Result |
-|---|---|
-| Dual-SVID rank-1 scales alone | No real gain: 0.826 -> 0.826 rel. error at 0.8 BPW |
-| + Joint-ITQ rotation (LittleBit-2) | **Real gain: 0.826 -> 0.730 at 0.8 BPW, 0.862 -> 0.794 at 0.55, 0.910 -> 0.872 at 0.3** |
-| + Residual path at matched BPW | No gain training-free: 0.727 / 0.800 / 0.883 (same or worse than ITQ alone) |
+Same matrices and budgets as v0.1. Training-free throughout. Full
+detail in RESULTS2.md.
 
-Takeaway: of LittleBit's three ideas, only the ITQ rotation pays off
-without training. Dual-SVID scales and residual compensation appear to
-earn their keep only inside QAT, which is consistent with our v0.1
-finding that sub-1-bit needs recovery training. Our next lever is
-therefore not more initialization tricks; it is task-aware allocation
-plus a small recovery step (roadmap v0.4 / v0.5 below, renumbered).
+| Method | Target BPW | Effective BPW | Rel. error | Cosine |
+|---|---|---|---|---|
+| v0.1 svd_binary (mean scales) | 0.8 | 0.80 | 0.826 | 0.562 |
+| v0.2 dual-svid scales | 0.8 | 0.80 | 0.826 | 0.563 |
+| v0.2 dual-svid + joint-itq | 0.8 | 0.80 | 0.730 | 0.684 |
+| v0.2 dual-svid + itq + residual | 0.8 | 0.80 | 0.727 | 0.685 |
+| v0.1 svd_binary (mean scales) | 0.55 | 0.55 | 0.862 | 0.506 |
+| v0.2 dual-svid scales | 0.55 | 0.55 | 0.860 | 0.508 |
+| v0.2 dual-svid + joint-itq | 0.55 | 0.55 | 0.794 | 0.608 |
+| v0.2 dual-svid + itq + residual | 0.55 | 0.55 | 0.800 | 0.595 |
+| v0.1 svd_binary (mean scales) | 0.3 | 0.30 | 0.910 | 0.413 |
+| v0.2 dual-svid scales | 0.3 | 0.30 | 0.908 | 0.417 |
+| v0.2 dual-svid + joint-itq | 0.3 | 0.30 | 0.872 | 0.486 |
+| v0.2 dual-svid + itq + residual | 0.3 | 0.30 | 0.883 | 0.460 |
 
-## What v0.3 tested (resident fraction, Colibri's idea clean-room)
+**Takeaway:** of LittleBit's three ideas, only the ITQ rotation pays
+off without training. Dual-SVID scales alone give no gain (0.826 to
+0.826 at 0.8 BPW). The residual path adds nothing at matched budget.
+Sub-1-bit needs recovery training; that is what v0.5 tests.
 
-Colibri runs giant MoE models in little RAM by placing weights across a
-storage/RAM/VRAM hierarchy: the routed (hot) fraction stays resident, the
-rest streams from disk. We stole only the placement idea and tested the
-honest dense-model version: profile real activations (profile3.py, 8 short
-prompts, pure-numpy forward pass), keep the 4 hottest of the 16 matrices
-resident as fp16 SVD at 3.0 BPW, compress the cold 12 with the v0.2 binary
-ITQ path, all at matched total budget. Plus a measured disk wall: cold blobs
-written to disk, page cache evicted, naive memmap on-demand reads timed.
+## Results v0.3
 
-Results (RESULTS3.md): the usage signal is real (hottest matrix sees 6x the
-activation of the quietest) but the split does NOT beat uniform v0.2 ITQ on
-mean weight error at matched budget (0.787 vs 0.730 at 0.8 BPW; worse at
-0.55 and 0.3). Usage-weighted rank allocation also fails to beat uniform.
-What the split buys is resident memory: 1.318 MB resident vs 83 MB full
-fp16 (63x less), at a fidelity cost of 0.730 -> 0.787. Cold disk reads are
-cheap at this scale (3.83 ms) but the reconstruct matmul is not (145 ms),
-which is the measured reason Colibri-style streaming collapses to
-~0.02-0.1 tok/s at 744B scale. For dense models, hot/cold is a
-memory-placement strategy, not a compression strategy. The next honest
-test is end-to-end task accuracy, where the hot fraction might matter.
+Same matrices and budgets. The profiler found a real usage signal: the
+hottest matrix (layer 11 down_proj) sees 6x the input activation of the
+quietest one. Hot set: top 4 of 16 matrices, kept resident as fp16 SVD
+at 3.0 BPW. Cold set: the other 12, compressed with the v0.2 binary ITQ
+path. Full detail in RESULTS3.md.
 
-## The Signet test: does the sign of the fine-tuning delta carry the change?
+| Method | Target BPW | Effective BPW | Rel. error | Cosine | Stored MB | Resident MB |
+|---|---|---|---|---|---|---|
+| v0.3-a uniform v0.1 binary @ 0.8 | 0.8 | 0.80 | 0.826 | 0.562 | 4.15 | - |
+| v0.3-b uniform v0.2 itq @ 0.8 | 0.8 | 0.80 | 0.730 | 0.684 | 4.16 | - |
+| v0.3-c usage-weighted binary @ 0.8 | 0.8 | 0.77 | 0.743 | 0.665 | 4.00 | - |
+| v0.3-d hot/cold split @ 0.8 | 0.8 | 0.80 | 0.787 | 0.616 | 4.14 | 1.318 |
+| v0.3-a uniform v0.1 binary @ 0.55 | 0.55 | 0.55 | 0.862 | 0.506 | 2.86 | - |
+| v0.3-b uniform v0.2 itq @ 0.55 | 0.55 | 0.55 | 0.794 | 0.608 | 2.85 | - |
+| v0.3-c usage-weighted binary @ 0.55 | 0.55 | 0.54 | 0.799 | 0.594 | 2.80 | - |
+| v0.3-d hot/cold split @ 0.55 | 0.55 | 0.55 | 0.849 | 0.524 | 2.85 | 1.318 |
+| v0.3-a uniform v0.1 binary @ 0.3 | 0.3 | 0.30 | 0.910 | 0.413 | 1.55 | - |
+| v0.3-b uniform v0.2 itq @ 0.3 | 0.3 | 0.30 | 0.872 | 0.486 | 1.55 | - |
+| v0.3-c usage-weighted binary @ 0.3 | 0.3 | 0.30 | 0.870 | 0.479 | 1.56 | - |
+| v0.3-d hot/cold split @ 0.3 | 0.3 | 0.30 | 0.929 | 0.289 | 1.54 | 1.318 |
 
-A side experiment with a sharper question. Fine-tuning turns a base model into
-an instruct model; the difference is a weight delta. We asked how much of that
-delta's effect survives keeping only its sign: 1 bit per weight, applied to the
-base model.
+Measured disk wall: reading a cold matrix from disk takes 3.83 ms, but
+rebuilding it takes about 145 ms. That rebuild cost is the measured
+reason this streaming approach drops to about 0.02 to 0.1 tokens per
+second at 744B scale.
 
-Arms: base, base + full delta, base + sign(delta), base + DARE-style 90%
-drop-and-rescale, and the real instruct model. Model: Qwen2.5-0.5B. Probes:
-24 logprob items across knowledge, instruction-following, and math sets
-(signet_results.json).
+**Takeaway:** the hot/cold split does not beat uniform v0.2 on weight
+error at any budget (0.787 vs 0.730 at 0.8 BPW). What it buys is
+resident memory: 1.318 MB resident instead of 83 MB for the full fp16
+model (63x less), at a small fidelity cost. For dense models, hot/cold
+placement is a memory strategy, not a compression strategy. The next
+test is end-to-end task accuracy (v0.4), where the hot fraction might
+matter.
+
+## Signet test
+
+**The question:** fine-tuning turns a base model into an instruct
+model. The difference is a weight delta. How much of that delta's
+effect survives if we keep only its sign (1 bit per weight) and apply
+it to the base model?
+
+**Setup:** five arms (base, base + full delta, base + sign of delta,
+base + DARE-style 90% drop-and-rescale, real instruct model) on
+Qwen2.5-0.5B. Scoring uses 24 hand-written logprob probe items across
+knowledge, instruction-following, and math sets (signet_results.json).
 
 | Probe set | Base to instruct gap | Closed by sign alone | Closed by DARE-90 |
 |---|---|---|---|
@@ -114,14 +148,31 @@ drop-and-rescale, and the real instruct model. Model: Qwen2.5-0.5B. Probes:
 | Instruction | 6.525 nats | 44.8% | Negative |
 | Math | Negative (instruct scored below base) | n/a | n/a |
 
-Takeaway: the direction of the fine-tuning change carries roughly half of its
-measurable effect on these probes; which way each weight moved matters more
-than how far. Dropping 90% of the delta and rescaling, the standard merge
-trick, destroyed the transfer here. Honest limits: 24 items, logprob probes
-only, one small model. This is a signal worth a bigger test, not a benchmark.
-The SmolLM arms of the same battery were voided by a launcher bug that
-selected the instruct file as its own base; the launcher is fixed and the
-reruns are pending.
+**Takeaway:** the direction of the fine-tuning change carries roughly
+half of its measurable effect on these probes. Which way each weight
+moved matters more than how far. The DARE-90 arm destroyed the transfer
+on this test. Limits: 24 items, logprob probes only, one small model.
+A signal worth a bigger test, not a benchmark.
+
+Note on the SmolLM arms: the first battery runs on SmolLM-135M and
+SmolLM2-360M were void, because a launcher bug selected the instruct
+file as its own base. The launcher is fixed. Corrected reruns on
+SmolLM-135M and SmolLM2-360M are pending, and their results will be
+added here.
+
+## How this differs from general compression
+
+| | General compression (LittleBit, GGUF...) | fraction-compressor |
+|---|---|---|
+| Goal | Keep all capability, fewer bits | Keep used capability, drop the rest |
+| Bit budget spent | Uniform / saliency-based | By your measured usage profile |
+| Expected general benchmark | Best possible at that size | Worse. On purpose. |
+| Expected score on your tasks | Degrades with everyone else's | The number we optimize and publish |
+| Fits | Any user | One user / one job, perfectly |
+
+If the task-aware version cannot beat uniform compression on the
+profiled tasks at the same size, the idea is wrong and the results
+will say so. That is the test.
 
 ## Roadmap
 
@@ -141,20 +192,6 @@ reruns are pending.
 - [ ] v0.5 QAT-lite recovery: short fine-tune of only the scale factors
       on your-task data, measure how much accuracy it buys back per bit
 
-## The comparison that matters
-
-| | General compression (LittleBit, GGUF...) | fraction-compressor |
-|---|---|---|
-| Goal | Keep all capability, fewer bits | Keep *used* capability, drop the rest |
-| Bit budget spent | Uniform / saliency-based | By your measured usage profile |
-| Expected general benchmark | Best possible at that size | Worse. On purpose. |
-| Expected score on your tasks | Degrades with everyone else's | The number we optimize and publish |
-| Fits | Any user | One user / one job, perfectly |
-
-If the task-aware version cannot beat uniform compression *on the profiled
-tasks at the same size*, the thesis is wrong and the results will say so.
-That is the test.
-
 ## Run it
 
 ```bash
@@ -167,4 +204,6 @@ curl -L -o data/smollm2-135m.safetensors \
 
 ## License
 
-MIT. Inspired by LittleBit (Samsung Research); no LittleBit code is used.
+MIT. See NOTICE.md for attribution, model licenses, and the clean-room
+statement. Inspired by LittleBit (Samsung Research); no LittleBit code
+is used.
