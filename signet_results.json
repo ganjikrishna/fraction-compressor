@@ -1,0 +1,51 @@
+{
+  "arms": [
+    "base",
+    "base+full",
+    "base+binary",
+    "base+dare90",
+    "instruct"
+  ],
+  "n_items": 24,
+  "delta_stats": {
+    "mean_abs": 0.011930476874113083,
+    "max_abs": 0.154296875,
+    "median_abs": 0.009765625
+  },
+  "summary": {
+    "math": {
+      "base": -8.888795073007863,
+      "instruct": -8.974273279052504,
+      "gap": -0.08547820604464107,
+      "base+full": -8.974273279021062,
+      "base+full_gap_closed": null,
+      "base+binary": -11.166096305842176,
+      "base+binary_gap_closed": null,
+      "base+dare90": -10.775482860605958,
+      "base+dare90_gap_closed": null
+    },
+    "knowledge": {
+      "base": -15.677145467885918,
+      "instruct": -14.661148514823456,
+      "gap": 1.0159969530624622,
+      "base+full": -14.661148514811828,
+      "base+full_gap_closed": 1.0000000000114448,
+      "base+binary": -15.090089942727936,
+      "base+binary_gap_closed": 0.577812289090488,
+      "base+dare90": -17.665884173462267,
+      "base+dare90_gap_closed": -1.9574258560341213
+    },
+    "instruct": {
+      "base": -21.700080795233546,
+      "instruct": -15.175550745642195,
+      "gap": 6.524530049591352,
+      "base+full": -15.175550745638768,
+      "base+full_gap_closed": 1.0000000000005251,
+      "base+binary": -18.775559536121275,
+      "base+binary_gap_closed": 0.4482347750540963,
+      "base+dare90": -23.706301886471188,
+      "base+dare90_gap_closed": -0.30748898020069604
+    }
+  },
+  "elapsed_s": 144.6
+}

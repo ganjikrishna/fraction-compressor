@@ -1,0 +1,104 @@
+{
+  "model": "data/smollm2-135m.safetensors",
+  "rows": [
+    {
+      "method": "v0.1 svd_binary (mean scales)",
+      "target_bpw": 0.8,
+      "eff_bpw": 0.798323560644079,
+      "rel_err": 0.8264787420630455,
+      "cosine": 0.5620128143480453,
+      "seconds": 21.3
+    },
+    {
+      "method": "v0.2 dual-svid scales",
+      "target_bpw": 0.8,
+      "eff_bpw": 0.7991528687653718,
+      "rel_err": 0.825694601982832,
+      "cosine": 0.5628463666467631,
+      "seconds": 17.6
+    },
+    {
+      "method": "v0.2 dual-svid + joint-itq",
+      "target_bpw": 0.8,
+      "eff_bpw": 0.7991528687653718,
+      "rel_err": 0.7298260927200317,
+      "cosine": 0.6840065298259421,
+      "seconds": 72.9
+    },
+    {
+      "method": "v0.2 dual-svid + itq + residual",
+      "target_bpw": 0.8,
+      "eff_bpw": 0.7984993546097366,
+      "rel_err": 0.7267514765262604,
+      "cosine": 0.6846422721108129,
+      "seconds": 36.8,
+      "note": "corrected rerun: first residual run under-spent the budget (per-path rank bug, fixed in compress2.py)"
+    },
+    {
+      "method": "v0.1 svd_binary (mean scales)",
+      "target_bpw": 0.55,
+      "eff_bpw": 0.5482193628946941,
+      "rel_err": 0.8619752302765846,
+      "cosine": 0.5060091982771753,
+      "seconds": 10.2
+    },
+    {
+      "method": "v0.2 dual-svid scales",
+      "target_bpw": 0.55,
+      "eff_bpw": 0.5494424325448495,
+      "rel_err": 0.8604809902608395,
+      "cosine": 0.5084248830355111,
+      "seconds": 14.7
+    },
+    {
+      "method": "v0.2 dual-svid + joint-itq",
+      "target_bpw": 0.55,
+      "eff_bpw": 0.5494424325448495,
+      "rel_err": 0.7937293760478497,
+      "cosine": 0.6078284439185718,
+      "seconds": 43.0
+    },
+    {
+      "method": "v0.2 dual-svid + itq + residual",
+      "target_bpw": 0.55,
+      "eff_bpw": 0.5466269033926505,
+      "rel_err": 0.8002910763025284,
+      "cosine": 0.5952376407064734,
+      "seconds": 28.9,
+      "note": "corrected rerun: first residual run under-spent the budget (per-path rank bug, fixed in compress2.py)"
+    },
+    {
+      "method": "v0.1 svd_binary (mean scales)",
+      "target_bpw": 0.3,
+      "eff_bpw": 0.2980053513138382,
+      "rel_err": 0.910191860049963,
+      "cosine": 0.4129916335060703,
+      "seconds": 9.9
+    },
+    {
+      "method": "v0.2 dual-svid scales",
+      "target_bpw": 0.3,
+      "eff_bpw": 0.2998418454770688,
+      "rel_err": 0.9081224501132965,
+      "cosine": 0.4166184189601889,
+      "seconds": 12.8
+    },
+    {
+      "method": "v0.2 dual-svid + joint-itq",
+      "target_bpw": 0.3,
+      "eff_bpw": 0.2998418454770688,
+      "rel_err": 0.8720615319907665,
+      "cosine": 0.4856751385971971,
+      "seconds": 19.6
+    },
+    {
+      "method": "v0.2 dual-svid + itq + residual",
+      "target_bpw": 0.3,
+      "eff_bpw": 0.29929818047417533,
+      "rel_err": 0.8825197294354439,
+      "cosine": 0.4597951680061372,
+      "seconds": 25.0,
+      "note": "corrected rerun: first residual run under-spent the budget (per-path rank bug, fixed in compress2.py)"
+    }
+  ]
+}

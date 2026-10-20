@@ -1,0 +1,141 @@
+{
+  "model": "data/smollm2-135m.safetensors",
+  "matrices": 16,
+  "params_in_scope": 41582592,
+  "hot": [
+    "model.layers.11.mlp.down_proj.weight",
+    "model.layers.10.mlp.down_proj.weight",
+    "model.layers.11.mlp.gate_proj.weight",
+    "model.layers.11.mlp.up_proj.weight"
+  ],
+  "cold": [
+    "model.layers.10.mlp.gate_proj.weight",
+    "model.layers.10.mlp.up_proj.weight",
+    "model.layers.12.mlp.down_proj.weight",
+    "model.embed_tokens.weight",
+    "model.layers.12.mlp.gate_proj.weight",
+    "model.layers.12.mlp.up_proj.weight",
+    "model.layers.1.mlp.gate_proj.weight",
+    "model.layers.1.mlp.up_proj.weight",
+    "model.layers.0.mlp.gate_proj.weight",
+    "model.layers.0.mlp.up_proj.weight",
+    "model.layers.0.mlp.down_proj.weight",
+    "model.layers.1.mlp.down_proj.weight"
+  ],
+  "rows": [
+    {
+      "method": "v0.3-a uniform v0.1 binary @ 0.8",
+      "eff_bpw": 0.7990570669572498,
+      "rel_err": 0.8264787420630455,
+      "cosine": 0.5620128143480453,
+      "stored_mb": 4.153358,
+      "seconds": 14.6
+    },
+    {
+      "method": "v0.3-b uniform v0.2 itq @ 0.8",
+      "eff_bpw": 0.7995030228033885,
+      "rel_err": 0.7298260927200317,
+      "cosine": 0.6840065298259421,
+      "stored_mb": 4.155676,
+      "seconds": 70.5
+    },
+    {
+      "method": "v0.3-c usage-weighted binary @ 0.8",
+      "eff_bpw": 0.7700037554176516,
+      "rel_err": 0.7433196939527988,
+      "cosine": 0.6652034085516203,
+      "stored_mb": 4.002344,
+      "seconds": 86.9
+    },
+    {
+      "method": "v0.3-d hot/cold split @ 0.8",
+      "eff_bpw": 0.796821900856974,
+      "rel_err": 0.7872971743345261,
+      "cosine": 0.6156958918229355,
+      "stored_mb": 4.14174,
+      "seconds": 137.2,
+      "resident_mb": 1.318,
+      "hot_param_frac": 0.0851,
+      "cold_bpw": 0.595
+    },
+    {
+      "method": "v0.3-a uniform v0.1 binary @ 0.55",
+      "eff_bpw": 0.549353344784279,
+      "rel_err": 0.8619752302765846,
+      "cosine": 0.5060091982771753,
+      "stored_mb": 2.855442,
+      "seconds": 35.0
+    },
+    {
+      "method": "v0.3-b uniform v0.2 itq @ 0.55",
+      "eff_bpw": 0.5487211571611506,
+      "rel_err": 0.7937293760478497,
+      "cosine": 0.6078284439185718,
+      "stored_mb": 2.852156,
+      "seconds": 145.5
+    },
+    {
+      "method": "v0.3-c usage-weighted binary @ 0.55",
+      "eff_bpw": 0.5381467321710007,
+      "rel_err": 0.7992012612521648,
+      "cosine": 0.5943206742700702,
+      "stored_mb": 2.7971919999999995,
+      "seconds": 162.2
+    },
+    {
+      "method": "v0.3-d hot/cold split @ 0.55",
+      "eff_bpw": 0.5478184717297084,
+      "rel_err": 0.848750039935112,
+      "cosine": 0.5244816141608073,
+      "stored_mb": 2.847464,
+      "seconds": 74.4,
+      "resident_mb": 1.318,
+      "hot_param_frac": 0.0851,
+      "cold_bpw": 0.322
+    },
+    {
+      "method": "v0.3-a uniform v0.1 binary @ 0.3",
+      "eff_bpw": 0.2984533527876281,
+      "rel_err": 0.910191860049963,
+      "cosine": 0.4129916335060703,
+      "stored_mb": 1.551308,
+      "seconds": 39.6
+    },
+    {
+      "method": "v0.3-b uniform v0.2 itq @ 0.3",
+      "eff_bpw": 0.29913594611899136,
+      "rel_err": 0.8720615319907665,
+      "cosine": 0.4856751385971971,
+      "stored_mb": 1.554856,
+      "seconds": 89.3
+    },
+    {
+      "method": "v0.3-c usage-weighted binary @ 0.3",
+      "eff_bpw": 0.2995976777974783,
+      "rel_err": 0.8704337440431118,
+      "cosine": 0.4790906450194816,
+      "stored_mb": 1.557256,
+      "seconds": 96.6
+    },
+    {
+      "method": "v0.3-d hot/cold split @ 0.3",
+      "eff_bpw": 0.2970512275906225,
+      "rel_err": 0.9286103770136833,
+      "cosine": 0.28871963415351626,
+      "stored_mb": 1.54402,
+      "seconds": 33.4,
+      "resident_mb": 1.318,
+      "hot_param_frac": 0.0851,
+      "cold_bpw": 0.049
+    }
+  ],
+  "disk": {
+    "matrices": 12,
+    "total_mb": 1.53,
+    "mean_cold_ms": 3.83,
+    "mean_warm_ms": 0.064,
+    "mean_reconstruct_ms": 145.4,
+    "cold_mbps": 33.3,
+    "roundtrip_rel_err": 0.000381
+  }
+}

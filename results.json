@@ -1,0 +1,74 @@
+{
+  "model": "data/smollm2-135m.safetensors",
+  "matrices": 16,
+  "params_in_scope": 41582592,
+  "rows": [
+    {
+      "method": "int8",
+      "target_bpw": null,
+      "eff_bpw": 8.125,
+      "rel_err": 0.006222926429472864,
+      "cosine": 0.9999805092422257
+    },
+    {
+      "method": "int4",
+      "target_bpw": null,
+      "eff_bpw": 4.125,
+      "rel_err": 0.10579952644184232,
+      "cosine": 0.9944190420711312
+    },
+    {
+      "method": "svd_fp16",
+      "target_bpw": 0.8,
+      "eff_bpw": 0.7653266059027777,
+      "rel_err": 0.9186802618205547,
+      "cosine": 0.3741973478544873,
+      "seconds": 13.2
+    },
+    {
+      "method": "svd_binary",
+      "target_bpw": 0.8,
+      "eff_bpw": 0.798323560644079,
+      "rel_err": 0.8264787420630455,
+      "cosine": 0.5620128143480453,
+      "seconds": 10.6
+    },
+    {
+      "method": "svd_fp16",
+      "target_bpw": 0.55,
+      "eff_bpw": 0.5346747504340277,
+      "rel_err": 0.9337593503296375,
+      "cosine": 0.33188354199089354,
+      "seconds": 11.3
+    },
+    {
+      "method": "svd_binary",
+      "target_bpw": 0.55,
+      "eff_bpw": 0.5482193628946941,
+      "rel_err": 0.8619752302765846,
+      "cosine": 0.5060091982771753,
+      "seconds": 10.7
+    },
+    {
+      "method": "svd_fp16",
+      "target_bpw": 0.3,
+      "eff_bpw": 0.2682156032986111,
+      "rel_err": 0.9527937211096287,
+      "cosine": 0.26593863999491696,
+      "seconds": 14.9
+    },
+    {
+      "method": "svd_binary",
+      "target_bpw": 0.3,
+      "eff_bpw": 0.2980053513138382,
+      "rel_err": 0.910191860049963,
+      "cosine": 0.4129916335060703,
+      "seconds": 10.1
+    }
+  ],
+  "task_aware_proxy": {
+    "target_bpw": 0.55,
+    "uniform_rel_err": 0.8619752302765846,
+    "energy_weighted_rel_err": 0.8560863249003887
+  }
+}
